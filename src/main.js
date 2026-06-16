@@ -2,7 +2,7 @@
 /// <reference types="types-for-adobe/shared/ScriptUI"/>
 
 import { notify } from './modules/utils.js'
-import { createPanel, showPanel } from './modules/panel.js'
+import { addWindow, show } from '../songz-modules/ui.js'
 import merge from 'just-merge'
 import expression from './modules/expression.js?text'
 import icon from './icons/icon.png'
@@ -15,7 +15,9 @@ const envMessage =
         : 'Create .env from .env.example to customize this message.'
 const messages = [expression, envMessage]
 
-const panel = createPanel(thisObj, PRODUCT_DISPLAY_NAME, {
+const panel = addWindow({
+    thisObj,
+    titleName: PRODUCT_DISPLAY_NAME,
     resizeable: true,
     alignChildren: ['fill', 'top'],
 })
@@ -38,5 +40,5 @@ if (panel) {
         notify(`Current settings:\n${JSON.stringify(settings, null, 2)}`)
     }
 
-    showPanel(panel)
+    show(panel)
 }

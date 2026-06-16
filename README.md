@@ -68,7 +68,7 @@ Every `.js` file in the root of the `src/` folder is considered an entrypoint. M
 
 ## Dockable ScriptUI Panels
 
-The build wraps each bundle with `(function (thisObj) { ... })(this);`, so entrypoints can pass `thisObj` into panel helpers. The example in [src/main.js](./src/main.js#L10) uses [src/modules/panel.js](./src/modules/panel.js) to open as a dockable panel when installed from the ScriptUI Panels folder, while still falling back to a floating palette when run directly.
+The build wraps each bundle with `(function (thisObj) { ... })(this);`, so entrypoints can pass `thisObj` into panel helpers. The example in [src/main.js](./src/main.js#L10) uses `addWindow` from [songz-modules/ui.js](./songz-modules/ui.js) to open as a dockable panel when installed from the ScriptUI Panels folder, while still falling back to a floating palette when run directly.
 
 For larger After Effects tools, import shared helpers from `songz-modules`:
 
