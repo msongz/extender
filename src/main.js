@@ -23,7 +23,14 @@ const panel = addWindow({
 })
 
 if (panel) {
-    const header = panel.add('group')
+    const rootGroup = panel.add('group')
+    rootGroup.orientation = 'column'
+    rootGroup.alignChildren = ['fill', 'top']
+    rootGroup.alignment = ['fill', 'fill']
+    rootGroup.margins = 0
+    rootGroup.spacing = 8
+
+    const header = rootGroup.add('group')
     header.orientation = 'row'
     header.alignChildren = ['left', 'center']
 
@@ -31,11 +38,11 @@ if (panel) {
     header.add('statictext', undefined, `${PRODUCT_DISPLAY_NAME} ${PRODUCT_VERSION}`)
 
     messages.forEach((message) => {
-        const text = panel.add('statictext', undefined, message, { multiline: true })
+        const text = rootGroup.add('statictext', undefined, message, { multiline: true })
         text.alignment = ['fill', 'top']
     })
 
-    const inspectButton = panel.add('button', undefined, 'Inspect settings')
+    const inspectButton = rootGroup.add('button', undefined, 'Inspect settings')
     inspectButton.onClick = function () {
         notify(`Current settings:\n${JSON.stringify(settings, null, 2)}`)
     }
