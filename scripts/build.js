@@ -35,9 +35,16 @@ build({
     bundle: true,
     sourcemap: devmode,
     target: ['es5'],
-    minifyWhitespace: !devmode,
+    // JSXBIN can fail when ExtendScript bundles are collapsed into one long line.
+    minifyWhitespace: false,
     minifyIdentifiers: !devmode,
     outExtension: { '.js': '.jsx' },
+    banner: {
+        js: '(function (thisObj) {',
+    },
+    footer: {
+        js: '})(this);',
+    },
     plugins: [
         copyStaticFiles({ dest: outdir }),
         binaryString(),

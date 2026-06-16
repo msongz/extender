@@ -16,18 +16,20 @@ Other starters don't actually transform modern Javascript, so you have to write 
 - Ecmascript modules for importing and exporting
 - Fast bundling with [esbuild](https://github.com/evanw/esbuild) _(TODO: insert obligatory lightning bolt emoji)_
 - Rebundles on file changes
-- Minifies the release version
+- Shortens release identifiers while keeping JSXBIN-safe whitespace
 - Converts to binary with [extendscript-debugger](https://marketplace.visualstudio.com/items?itemName=Adobe.extendscript-debug)
-- Wraps bundle in an [IIFE](https://developer.mozilla.org/en-US/docs/Glossary/IIFE) to avoid global variables
+- Wraps bundle in an [IIFE](https://developer.mozilla.org/en-US/docs/Glossary/IIFE) to avoid global variables and expose Adobe's `thisObj` for dockable ScriptUI panels
 - Exposes environment variables to Javascript files
 - Includes JSON automatically as a ponyfill
 - Copies static files from `/static` (with [esbuild-copy-static-files](https://github.com/nickjj/esbuild-copy-static-files))
 - Imports `?text` suffixed paths as strings
 - Imports icons as binary strings
+- Includes the `msongz/songz-modules` submodule for reusable After Effects helpers
 
 ## Try the example
 
 1. Duplicate `.env.example` and remove the `.example` extension
+1. Run `git submodule update --init --recursive`
 1. Run `npm install && npm start` in your terminal
 1. Run `/build/extender.jsx` in your Adobe app of choice
 
@@ -62,7 +64,17 @@ If you have a `.env` file it will automatically expose the variables by their na
 
 ## Entrypoints
 
-Every `.js` file in the root of the `source/` folder is considered an entrypoint. Multiple entrypoints will result in multiple scripts being bundled separately, keeping the same name as their entrypoint. If there's a single entrypoint it will be renamed to `name` from `package.json`.
+Every `.js` file in the root of the `src/` folder is considered an entrypoint. Multiple entrypoints will result in multiple scripts being bundled separately, keeping the same name as their entrypoint. If there's a single entrypoint it will be renamed to `name` from `package.json`.
+
+## Dockable ScriptUI Panels
+
+The build wraps each bundle with `(function (thisObj) { ... })(this);`, so entrypoints can pass `thisObj` into panel helpers. The example in [src/main.js](./src/main.js#L10) uses [src/modules/panel.js](./src/modules/panel.js) to open as a dockable panel when installed from the ScriptUI Panels folder, while still falling back to a floating palette when run directly.
+
+For larger After Effects tools, import shared helpers from `songz-modules`:
+
+```js
+import { addWindow, show } from '../songz-modules/ui'
+```
 
 ## Debugging
 
@@ -92,7 +104,7 @@ The contents of `/static` will be copied to the `outdir` whenever you run the bu
 
 ## Minification
 
-Only whitespaces are removed and variable names are shortened. The syntax remains intact to avoid Extendscript errors.
+Release builds shorten variable names but keep whitespace intact because JSXBIN can fail when an ExtendScript bundle is collapsed into one very long line. The syntax remains intact to avoid Extendscript errors.
 
 ## Types for Adobe
 

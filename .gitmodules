@@ -1,0 +1,3 @@
+[submodule "songz-modules"]
+	path = songz-modules
+	url = https://github.com/msongz/songz-modules.git
