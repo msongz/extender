@@ -9,7 +9,11 @@ import icon from './icons/icon.png'
 
 const defaults = { source: 'extender', dockable: true }
 const settings = merge(defaults, { version: PRODUCT_VERSION })
-const messages = [expression, IM_IN_ENV]
+const envMessage =
+    typeof IM_IN_ENV !== 'undefined'
+        ? IM_IN_ENV
+        : 'Create .env from .env.example to customize this message.'
+const messages = [expression, envMessage]
 
 const panel = createPanel(thisObj, PRODUCT_DISPLAY_NAME, {
     resizeable: true,
