@@ -76,6 +76,18 @@ For larger After Effects tools, import shared helpers from `songz-modules`:
 import { addWindow, show } from '../songz-modules/ui'
 ```
 
+## Template Window Frame
+
+[src/modules/templateFrame.js](./src/modules/templateFrame.js) provides a reusable ScriptUI shell inspired by segmentRender:
+
+- colored outer border and themed content background
+- `homeGroup` and `settingsGroup` views with a footer Settings/Back toggle
+- footer version text, developer text, hover highlight, and click-to-open links
+- `flashVersionInfo()` for temporary status/version text overrides
+- `openProjectPage()` and `openDeveloperPage()` helpers
+
+The example [src/main.js](./src/main.js) shows how future tools can put product controls in `frame.homeGroup`, settings controls in `frame.settingsGroup`, and then call `frame.show()`.
+
 ## Debugging
 
 Press `F5` in VSCode to launch the debugger and you will be prompted for the host application. To avoid the prompt set the `hostAppSpecifier` in `launch.json`
