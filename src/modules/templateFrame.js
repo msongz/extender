@@ -141,11 +141,8 @@ export function createTemplateFrame(thisObj, options = {}) {
     bottomGroup.spacing = 6
 
     const versionInfo = bottomGroup.add('statictext', undefined, versionText)
-    versionInfo.alignment = ['left', 'center']
+    versionInfo.alignment = ['fill', 'center']
     versionInfo.helpTip = options.versionHelpTip || 'Open project page'
-
-    const bottomSpacer = bottomGroup.add('statictext', undefined, '')
-    bottomSpacer.alignment = ['fill', 'center']
 
     const developerInfo = bottomGroup.add('statictext', undefined, developerText)
     developerInfo.alignment = ['right', 'center']
@@ -179,6 +176,7 @@ export function createTemplateFrame(thisObj, options = {}) {
     function restoreVersionInfo() {
         versionInfo.text = versionText
         setFooterPen(textPen)
+        relayout()
     }
 
     function relayout() {
@@ -227,6 +225,7 @@ export function createTemplateFrame(thisObj, options = {}) {
             color || borderColor,
             1,
         )
+        relayout()
     }
 
     function flashVersionInfo(text, duration, color) {
