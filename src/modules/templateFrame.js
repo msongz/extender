@@ -176,7 +176,6 @@ export function createTemplateFrame(thisObj, options = {}) {
     function restoreVersionInfo() {
         versionInfo.text = versionText
         setFooterPen(textPen)
-        relayout()
     }
 
     function relayout() {
@@ -225,7 +224,6 @@ export function createTemplateFrame(thisObj, options = {}) {
             color || borderColor,
             1,
         )
-        relayout()
     }
 
     function flashVersionInfo(text, duration, color) {
@@ -251,12 +249,10 @@ export function createTemplateFrame(thisObj, options = {}) {
     versionInfo.addEventListener('mouseover', function () {
         versionInfo.graphics.foregroundColor = highlightPen
         developerInfo.show()
-        relayout()
     })
     versionInfo.addEventListener('mouseout', function () {
         restoreVersionInfo()
         developerInfo.hide()
-        relayout()
     })
     versionInfo.addEventListener('click', openProjectPage)
 
