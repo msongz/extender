@@ -1,171 +1,203 @@
-import { getAppVersionAsNumber } from '../../songz-modules/app.js'
-import { openURL } from '../../songz-modules/songzUtils.js'
-import { addWindow, colorGroup, show } from '../../songz-modules/ui.js'
+import { openURL, scheduleRestore } from '../../songz-modules/songzUtils.js'
+import {
+    addMouseOutEvent,
+    addMouseOverEvent,
+    addOnClickEvent,
+    addGroup,
+    addStaticText,
+    addWindow,
+    colorBgGroup,
+    hexToScriptUIColor,
+    layout,
+    resize,
+    setVisible,
+    show,
+} from '../../songz-modules/ui.js'
 
-function hexToRgb(hex) {
-    const normalized = String(hex || '709536').replace('#', '')
-    const color = normalized.length === 3
-        ? normalized.replace(/(.)/g, '$1$1')
-        : normalized
-
-    return [
-        parseInt(color.substr(0, 2), 16) / 255,
-        parseInt(color.substr(2, 2), 16) / 255,
-        parseInt(color.substr(4, 2), 16) / 255,
-        1,
-    ]
-}
-
-function getThemeColor() {
-    if (getAppVersionAsNumber() < 25) return app.themeColor(3)
-
-    switch (app.getAppTheme) {
-        case 'light':
-            return [234 / 255, 234 / 255, 234 / 255, 1]
-        case 'dark':
-            return [50 / 255, 50 / 255, 50 / 255, 1]
-        case 'darkest':
-            return [29 / 255, 29 / 255, 29 / 255, 1]
-        default:
-            return [29 / 255, 29 / 255, 29 / 255, 1]
+function normalizeFrameOptions(options = {}) {
+    return {
+        title: options.title || PRODUCT_DISPLAY_NAME,
+        versionText: options.versionText || `v${PRODUCT_VERSION}`,
+        developerText: options.developerText || '@songz',
+        projectUrl: options.projectUrl || 'https://github.com/msongz/extender',
+        developerUrl: options.developerUrl || 'https://github.com/msongz',
+        borderColor: options.borderColor || hexToScriptUIColor(options.borderHex || '709536'),
+        textColor: options.textColor || [1, 1, 1, 0.35],
+        statusDuration: options.statusDuration || 1600,
+        borderWidth: options.borderWidth !== undefined ? options.borderWidth : 6,
+        contentMargins: options.contentMargins !== undefined ? options.contentMargins : 8,
+        contentSpacing: options.contentSpacing !== undefined ? options.contentSpacing : 8,
+        settingsTitle: options.settingsTitle || 'Settings',
+        settingsButtonText: options.settingsButtonText || 'Settings',
+        backButtonText: options.backButtonText || 'Back',
+        settingsHelpTip: options.settingsHelpTip || 'Toggle settings',
+        versionHelpTip: options.versionHelpTip || 'Open project page',
+        developerHelpTip: options.developerHelpTip || 'Open developer page',
     }
 }
 
-function setVisible(control, visible) {
-    if (!control) return
-
-    control.visible = visible
-    if (visible) {
-        if (control.show) control.show()
-        control.preferredSize = [-1, -1]
-        control.minimumSize = [0, 0]
-        control.maximumSize = [10000, 10000]
-    } else {
-        if (control.hide) control.hide()
-        control.preferredSize = [0, 0]
-        control.minimumSize = [0, 0]
-        control.maximumSize = [10000, 0]
-    }
-}
-
-function scheduleRestore(callback, delay) {
-    if (!app.scheduleTask) return
-
-    if (!$.global._extenderTemplateRestores) {
-        $.global._extenderTemplateRestores = {}
-    }
-
-    const id = `restore_${new Date().getTime()}_${Math.floor(Math.random() * 100000)}`
-    $.global._extenderTemplateRestores[id] = function () {
-        try {
-            callback()
-        } finally {
-            try {
-                delete $.global._extenderTemplateRestores[id]
-            } catch (_error) {}
-        }
-    }
-
-    app.scheduleTask(`$.global._extenderTemplateRestores["${id}"]()`, delay, false)
-}
-
-export function createTemplateFrame(thisObj, options = {}) {
-    const title = options.title || PRODUCT_DISPLAY_NAME
-    const versionText = options.versionText || `v${PRODUCT_VERSION}`
-    const developerText = options.developerText || '@songz'
-    const projectUrl = options.projectUrl || 'https://github.com/msongz/extender'
-    const developerUrl = options.developerUrl || 'https://github.com/msongz'
-    const borderColor = options.borderColor || hexToRgb(options.borderHex || '709536')
-    const textColor = options.textColor || [1, 1, 1, 0.35]
-    const statusDuration = options.statusDuration || 1600
-
-    const win = addWindow({
+function createFrameWindow(thisObj, config) {
+    return addWindow({
         thisObj,
-        titleName: title,
+        titleName: config.title,
         orientation: 'column',
         alignChildren: ['fill', 'fill'],
         margins: 0,
         spacing: 0,
         resizeable: true,
     })
+}
 
-    if (!win) return null
-
-    const borderGroup = win.add('group')
-    borderGroup.orientation = 'column'
-    borderGroup.alignment = ['fill', 'fill']
-    borderGroup.margins = options.borderWidth !== undefined ? options.borderWidth : 6
-    borderGroup.spacing = 0
+function createFrameShell(win, config) {
+    const borderGroup = addGroup(win, {
+        orientation: 'column',
+        margins: config.borderWidth,
+    })
     borderGroup.graphics.backgroundColor = borderGroup.graphics.newBrush(
         borderGroup.graphics.BrushType.SOLID_COLOR,
-        borderColor,
+        config.borderColor,
     )
 
-    const contentGroup = borderGroup.add('group')
-    contentGroup.orientation = 'column'
-    contentGroup.alignment = ['fill', 'fill']
-    contentGroup.alignChildren = ['fill', 'top']
-    contentGroup.margins = options.contentMargins !== undefined ? options.contentMargins : 8
-    contentGroup.spacing = options.contentSpacing !== undefined ? options.contentSpacing : 8
-    colorGroup(contentGroup, getThemeColor())
+    const contentGroup = addGroup(borderGroup, {
+        orientation: 'column',
+        alignChildren: ['fill', 'top'],
+        margins: config.contentMargins,
+        spacing: config.contentSpacing,
+    })
+    colorBgGroup(contentGroup)
 
-    const viewGroup = contentGroup.add('group')
-    viewGroup.orientation = 'stack'
-    viewGroup.alignment = ['fill', 'fill']
-    viewGroup.alignChildren = ['fill', 'top']
-    viewGroup.margins = 0
-    viewGroup.spacing = 0
+    const viewGroup = addGroup(contentGroup, {
+        orientation: 'stack',
+        alignChildren: ['fill', 'top'],
+    })
 
-    const homeGroup = viewGroup.add('group')
-    homeGroup.orientation = 'column'
-    homeGroup.alignment = ['fill', 'top']
-    homeGroup.alignChildren = ['fill', 'top']
-    homeGroup.margins = 0
-    homeGroup.spacing = 8
+    const homeGroup = addGroup(viewGroup, {
+        orientation: 'column',
+        alignment: ['fill', 'top'],
+        alignChildren: ['fill', 'top'],
+        spacing: 8,
+    })
 
-    const settingsGroup = viewGroup.add('group')
-    settingsGroup.orientation = 'column'
-    settingsGroup.alignment = ['fill', 'top']
-    settingsGroup.alignChildren = ['fill', 'top']
-    settingsGroup.margins = 0
-    settingsGroup.spacing = 8
+    const settingsGroup = addGroup(viewGroup, {
+        orientation: 'column',
+        alignment: ['fill', 'top'],
+        alignChildren: ['fill', 'top'],
+        spacing: 8,
+    })
 
-    const settingsTitle = settingsGroup.add('statictext', undefined, options.settingsTitle || 'Settings')
-    settingsTitle.alignment = ['fill', 'top']
+    const settingsTitle = addStaticText(settingsGroup, {
+        text: config.settingsTitle,
+        alignment: ['fill', 'top'],
+    })
 
-    const bottomGroup = contentGroup.add('group')
-    bottomGroup.orientation = 'row'
-    bottomGroup.alignment = ['fill', 'bottom']
-    bottomGroup.alignChildren = ['left', 'center']
-    bottomGroup.margins = 0
-    bottomGroup.spacing = 6
+    return {
+        borderGroup,
+        contentGroup,
+        viewGroup,
+        homeGroup,
+        settingsGroup,
+        settingsTitle,
+    }
+}
 
-    const versionInfo = bottomGroup.add('statictext', undefined, versionText)
-    versionInfo.alignment = ['fill', 'center']
-    versionInfo.helpTip = options.versionHelpTip || 'Open project page'
+function createFrameFooter(contentGroup, config) {
+    const bottomGroup = addGroup(contentGroup, {
+        alignment: ['fill', 'bottom'],
+        alignChildren: ['left', 'center'],
+        spacing: 6,
+    })
 
-    const developerInfo = bottomGroup.add('statictext', undefined, developerText)
-    developerInfo.alignment = ['right', 'center']
-    developerInfo.helpTip = options.developerHelpTip || 'Open developer page'
+    const versionInfo = addStaticText(bottomGroup, {
+        text: config.versionText,
+        alignment: ['fill', 'center'],
+        helpTip: config.versionHelpTip,
+    })
+
+    const developerInfo = addStaticText(bottomGroup, {
+        text: config.developerText,
+        alignment: ['right', 'center'],
+        helpTip: config.developerHelpTip,
+    })
     developerInfo.hide()
 
-    const settingsButton = bottomGroup.add('button', undefined, options.settingsButtonText || 'Settings')
+    const settingsButton = bottomGroup.add('button', undefined, config.settingsButtonText)
     settingsButton.alignment = ['right', 'center']
-    settingsButton.helpTip = options.settingsHelpTip || 'Toggle settings'
+    settingsButton.helpTip = config.settingsHelpTip
     settingsButton.preferredSize = [78, 22]
 
     const textPen = versionInfo.graphics.newPen(
         versionInfo.graphics.PenType.SOLID_COLOR,
-        textColor,
+        config.textColor,
         1,
     )
     const highlightPen = versionInfo.graphics.newPen(
         versionInfo.graphics.PenType.SOLID_COLOR,
-        borderColor,
+        config.borderColor,
         1,
     )
 
+    versionInfo.graphics.foregroundColor = textPen
+    developerInfo.graphics.foregroundColor = textPen
+
+    return {
+        bottomGroup,
+        versionInfo,
+        developerInfo,
+        settingsButton,
+        textPen,
+        highlightPen,
+    }
+}
+
+function createFooterController(footer, config) {
     let statusToken = 0
+
+    function setFooterPen(pen) {
+        footer.versionInfo.graphics.foregroundColor = pen
+        footer.developerInfo.graphics.foregroundColor = pen
+    }
+
+    function restoreVersionInfo() {
+        footer.versionInfo.text = config.versionText
+        setFooterPen(footer.textPen)
+    }
+
+    function setVersionInfo(text, color) {
+        footer.versionInfo.text = text
+        footer.versionInfo.graphics.foregroundColor = footer.versionInfo.graphics.newPen(
+            footer.versionInfo.graphics.PenType.SOLID_COLOR,
+            color || config.borderColor,
+            1,
+        )
+    }
+
+    function flashVersionInfo(text, duration, color) {
+        statusToken += 1
+        const token = statusToken
+        setVersionInfo(text, color)
+        scheduleRestore(function () {
+            if (token === statusToken) restoreVersionInfo()
+        }, duration || config.statusDuration)
+    }
+
+    function openProjectPage() {
+        openURL(config.projectUrl)
+    }
+
+    function openDeveloperPage() {
+        openURL(config.developerUrl)
+    }
+
+    return {
+        restoreVersionInfo,
+        setVersionInfo,
+        flashVersionInfo,
+        openProjectPage,
+        openDeveloperPage,
+    }
+}
+
+function createViewController(win, shell, footer, config) {
     let settingsVisible = false
     let fixedMinimumSize = null
     let isManagingViewSize = false
@@ -174,20 +206,10 @@ export function createTemplateFrame(thisObj, options = {}) {
         settings: null,
     }
 
-    function setFooterPen(pen) {
-        versionInfo.graphics.foregroundColor = pen
-        developerInfo.graphics.foregroundColor = pen
-    }
-
-    function restoreVersionInfo() {
-        versionInfo.text = versionText
-        setFooterPen(textPen)
-    }
-
     function relayout() {
         try {
-            win.layout.layout(true)
-            win.layout.resize()
+            layout(win)
+            resize(win)
             if (win.update) win.update()
         } catch (_error) {}
     }
@@ -223,9 +245,9 @@ export function createTemplateFrame(thisObj, options = {}) {
         const wasManagingViewSize = isManagingViewSize
         try {
             isManagingViewSize = true
-            win.layout.layout(true)
+            layout(win)
             win.size = [size[0], size[1]]
-            win.layout.resize()
+            resize(win)
             win.size = [size[0], size[1]]
             if (win.update) win.update()
             return true
@@ -237,26 +259,26 @@ export function createTemplateFrame(thisObj, options = {}) {
     }
 
     function setVisibleView(visible) {
-        setVisible(settingsGroup, visible)
-        setVisible(homeGroup, !visible)
-        settingsButton.text = visible ? (options.backButtonText || 'Back') : (options.settingsButtonText || 'Settings')
+        setVisible(shell.settingsGroup, visible)
+        setVisible(shell.homeGroup, !visible)
+        footer.settingsButton.text = visible ? config.backButtonText : config.settingsButtonText
     }
 
     function clearMinimumSize() {
         win.minimumSize = [0, 0]
-        borderGroup.minimumSize = [0, 0]
+        shell.borderGroup.minimumSize = [0, 0]
     }
 
     function applyFixedMinimumSize() {
         if (!fixedMinimumSize) return
 
         win.minimumSize = [fixedMinimumSize[0], fixedMinimumSize[1]]
-        borderGroup.minimumSize = [fixedMinimumSize[0], fixedMinimumSize[1]]
+        shell.borderGroup.minimumSize = [fixedMinimumSize[0], fixedMinimumSize[1]]
     }
 
     function captureCurrentMinimumSize() {
         try {
-            const size = borderGroup.preferredSize || borderGroup.size
+            const size = shell.borderGroup.preferredSize || shell.borderGroup.size
             if (!size || size.length < 2 || size[0] <= 0 || size[1] <= 0) return null
 
             return [size[0], size[1]]
@@ -313,94 +335,93 @@ export function createTemplateFrame(thisObj, options = {}) {
         if (!restoreViewSize(viewKey)) relayout()
     }
 
-    function setVersionInfo(text, color) {
-        versionInfo.text = text
-        versionInfo.graphics.foregroundColor = versionInfo.graphics.newPen(
-            versionInfo.graphics.PenType.SOLID_COLOR,
-            color || borderColor,
-            1,
-        )
+    function isSettingsVisible() {
+        return settingsVisible
     }
 
-    function flashVersionInfo(text, duration, color) {
-        statusToken += 1
-        const token = statusToken
-        setVersionInfo(text, color)
-        scheduleRestore(function () {
-            if (token === statusToken) restoreVersionInfo()
-        }, duration || statusDuration)
+    return {
+        initializeMinimumSize,
+        initializeViewSizes,
+        isSettingsVisible,
+        rememberCurrentViewSize,
+        relayout,
+        showSettings,
     }
+}
 
-    function openProjectPage() {
-        openURL(projectUrl)
-    }
-
-    function openDeveloperPage() {
-        openURL(developerUrl)
-    }
-
-    versionInfo.graphics.foregroundColor = textPen
-    developerInfo.graphics.foregroundColor = textPen
-
-    versionInfo.addEventListener('mouseover', function () {
-        versionInfo.graphics.foregroundColor = highlightPen
-        developerInfo.show()
+function bindFrameEvents(win, footer, viewController, footerController) {
+    addMouseOverEvent(footer.versionInfo, function () {
+        footer.versionInfo.graphics.foregroundColor = footer.highlightPen
+        footer.developerInfo.show()
     })
-    versionInfo.addEventListener('mouseout', function () {
-        restoreVersionInfo()
-        developerInfo.hide()
+    addMouseOutEvent(footer.versionInfo, function () {
+        footerController.restoreVersionInfo()
+        footer.developerInfo.hide()
     })
-    versionInfo.addEventListener('click', openProjectPage)
+    addOnClickEvent(footer.versionInfo, footerController.openProjectPage)
 
-    developerInfo.addEventListener('mouseover', function () {
-        developerInfo.graphics.foregroundColor = highlightPen
+    addMouseOverEvent(footer.developerInfo, function () {
+        footer.developerInfo.graphics.foregroundColor = footer.highlightPen
     })
-    developerInfo.addEventListener('mouseout', function () {
-        developerInfo.graphics.foregroundColor = textPen
+    addMouseOutEvent(footer.developerInfo, function () {
+        footer.developerInfo.graphics.foregroundColor = footer.textPen
     })
-    developerInfo.addEventListener('click', openDeveloperPage)
+    addOnClickEvent(footer.developerInfo, footerController.openDeveloperPage)
 
-    settingsButton.onClick = function () {
-        showSettings(!settingsVisible)
+    footer.settingsButton.onClick = function () {
+        viewController.showSettings(!viewController.isSettingsVisible())
     }
 
     const originalOnResize = win.onResize
     const originalOnResizing = win.onResizing
     win.onResize = function () {
-        rememberCurrentViewSize()
+        viewController.rememberCurrentViewSize()
         if (originalOnResize) originalOnResize()
     }
     win.onResizing = function () {
-        rememberCurrentViewSize()
+        viewController.rememberCurrentViewSize()
         if (originalOnResizing) originalOnResizing()
     }
+}
 
-    showSettings(false)
+export function createTemplateFrame(thisObj, options = {}) {
+    const config = normalizeFrameOptions(options)
+    const win = createFrameWindow(thisObj, config)
+
+    if (!win) return null
+
+    const shell = createFrameShell(win, config)
+    const footer = createFrameFooter(shell.contentGroup, config)
+    const footerController = createFooterController(footer, config)
+    const viewController = createViewController(win, shell, footer, config)
+
+    bindFrameEvents(win, footer, viewController, footerController)
+    viewController.showSettings(false)
 
     return {
         win,
-        borderGroup,
-        borderColor,
-        contentGroup,
-        viewGroup,
-        homeGroup,
-        settingsGroup,
-        settingsTitle,
-        bottomGroup,
-        versionInfo,
-        developerInfo,
-        settingsButton,
-        showSettings,
-        restoreVersionInfo,
-        setVersionInfo,
-        flashVersionInfo,
-        openProjectPage,
-        openDeveloperPage,
-        relayout,
+        borderGroup: shell.borderGroup,
+        borderColor: config.borderColor,
+        contentGroup: shell.contentGroup,
+        viewGroup: shell.viewGroup,
+        homeGroup: shell.homeGroup,
+        settingsGroup: shell.settingsGroup,
+        settingsTitle: shell.settingsTitle,
+        bottomGroup: footer.bottomGroup,
+        versionInfo: footer.versionInfo,
+        developerInfo: footer.developerInfo,
+        settingsButton: footer.settingsButton,
+        showSettings: viewController.showSettings,
+        restoreVersionInfo: footerController.restoreVersionInfo,
+        setVersionInfo: footerController.setVersionInfo,
+        flashVersionInfo: footerController.flashVersionInfo,
+        openProjectPage: footerController.openProjectPage,
+        openDeveloperPage: footerController.openDeveloperPage,
+        relayout: viewController.relayout,
         show: function () {
             show(win)
-            initializeMinimumSize()
-            initializeViewSizes()
+            viewController.initializeMinimumSize()
+            viewController.initializeViewSizes()
         },
     }
 }
