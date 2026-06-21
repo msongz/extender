@@ -1,6 +1,6 @@
 import icon from '../../icons/icon.png'
 import { inspectSettings, updateFooterMessage } from './actions.js'
-import { addGroup, addStaticText } from '../../../songz-modules/ui.js'
+import { addButton, addGroup, addStaticText } from '../../../songz-modules/ui.js'
 
 // Home view: replace this with the main controls for a new script.
 export function buildHomeView(frame, context) {
@@ -28,18 +28,24 @@ export function buildHomeView(frame, context) {
         spacing: 6,
     })
 
-    const inspectButton = actionGroup.add('button', undefined, 'Inspect settings')
-    inspectButton.onClick = function () {
-        inspectSettings(context.toolSettings)
-    }
+    addButton(actionGroup, {
+        text: 'Inspect settings',
+        onClick: function () {
+            inspectSettings(context.toolSettings)
+        },
+    })
 
-    const statusButton = actionGroup.add('button', undefined, 'Flash footer')
-    statusButton.onClick = function () {
-        frame.flashVersionInfo(context.state.footerMessage)
-    }
+    addButton(actionGroup, {
+        text: 'Flash footer',
+        onClick: function () {
+            frame.flashVersionInfo(context.state.footerMessage)
+        },
+    })
 
-    const linkButton = frame.homeGroup.add('button', undefined, 'Open project page')
-    linkButton.onClick = frame.openProjectPage
+    addButton(frame.homeGroup, {
+        text: 'Open project page',
+        onClick: frame.openProjectPage,
+    })
 }
 
 // Settings view: put preferences and secondary controls here.
@@ -63,11 +69,15 @@ export function buildSettingsView(frame, context) {
         spacing: 6,
     })
 
-    const previewFooterButton = settingsActionGroup.add('button', undefined, 'Preview footer')
-    previewFooterButton.onClick = function () {
-        updateFooterMessage(frame, context.state, footerMessageInput.text)
-    }
+    addButton(settingsActionGroup, {
+        text: 'Preview footer',
+        onClick: function () {
+            updateFooterMessage(frame, context.state, footerMessageInput.text)
+        },
+    })
 
-    const openDeveloperButton = settingsActionGroup.add('button', undefined, 'Open developer page')
-    openDeveloperButton.onClick = frame.openDeveloperPage
+    addButton(settingsActionGroup, {
+        text: 'Open developer page',
+        onClick: frame.openDeveloperPage,
+    })
 }

@@ -3,6 +3,7 @@ import {
     addMouseOutEvent,
     addMouseOverEvent,
     addOnClickEvent,
+    addButton,
     addGroup,
     addStaticText,
     addWindow,
@@ -120,10 +121,12 @@ function createFrameFooter(contentGroup, config) {
     })
     developerInfo.hide()
 
-    const settingsButton = bottomGroup.add('button', undefined, config.settingsButtonText)
-    settingsButton.alignment = ['right', 'center']
-    settingsButton.helpTip = config.settingsHelpTip
-    settingsButton.preferredSize = [78, 22]
+    const settingsButton = addButton(bottomGroup, {
+        text: config.settingsButtonText,
+        alignment: ['right', 'center'],
+        helpTip: config.settingsHelpTip,
+        preferredSize: [78, 22],
+    })
 
     const textPen = versionInfo.graphics.newPen(
         versionInfo.graphics.PenType.SOLID_COLOR,
