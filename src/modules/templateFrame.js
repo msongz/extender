@@ -170,7 +170,6 @@ export function createTemplateFrame(thisObj, options = {}) {
 
     let statusToken = 0
     let settingsVisible = false
-    let homeMinimumSize = null
 
     function setFooterPen(pen) {
         versionInfo.graphics.foregroundColor = pen
@@ -190,18 +189,27 @@ export function createTemplateFrame(thisObj, options = {}) {
         } catch (_error) {}
     }
 
-    function captureHomeMinimumSize() {
-        if (settingsVisible || !homeGroup.visible) return
+    function clearMinimumSize() {
+        win.minimumSize = [0, 0]
+        borderGroup.minimumSize = [0, 0]
+    }
 
+    function captureCurrentMinimumSize() {
         try {
-            win.layout.layout(true)
             const size = borderGroup.preferredSize || borderGroup.size
             if (!size || size.length < 2 || size[0] <= 0 || size[1] <= 0) return
 
-            homeMinimumSize = [size[0], size[1]]
-            win.minimumSize = homeMinimumSize
-            borderGroup.minimumSize = homeMinimumSize
+            const minimumSize = [size[0], size[1]]
+            win.minimumSize = minimumSize
+            borderGroup.minimumSize = minimumSize
         } catch (_error) {}
+    }
+
+    function refreshMinimumSize() {
+        clearMinimumSize()
+        relayout()
+        captureCurrentMinimumSize()
+        relayout()
     }
 
     function showSettings(visible) {
@@ -209,11 +217,7 @@ export function createTemplateFrame(thisObj, options = {}) {
         setVisible(settingsGroup, visible)
         setVisible(homeGroup, !visible)
         settingsButton.text = visible ? (options.backButtonText || 'Back') : (options.settingsButtonText || 'Settings')
-        if (!visible && homeMinimumSize) {
-            win.minimumSize = homeMinimumSize
-            borderGroup.minimumSize = homeMinimumSize
-        }
-        relayout()
+        refreshMinimumSize()
     }
 
     function setVersionInfo(text, color) {
@@ -293,9 +297,7 @@ export function createTemplateFrame(thisObj, options = {}) {
         relayout,
         show: function () {
             show(win)
-            relayout()
-            captureHomeMinimumSize()
-            relayout()
+            refreshMinimumSize()
         },
     }
 }
