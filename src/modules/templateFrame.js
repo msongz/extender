@@ -167,6 +167,12 @@ export function createTemplateFrame(thisObj, options = {}) {
 
     let statusToken = 0
     let settingsVisible = false
+    let fixedMinimumSize = null
+    let isManagingViewSize = false
+    const viewSizes = {
+        home: null,
+        settings: null,
+    }
 
     function setFooterPen(pen) {
         versionInfo.graphics.foregroundColor = pen
@@ -186,35 +192,125 @@ export function createTemplateFrame(thisObj, options = {}) {
         } catch (_error) {}
     }
 
+    function getCurrentViewKey() {
+        return settingsVisible ? 'settings' : 'home'
+    }
+
+    function getWindowSize() {
+        try {
+            const size = win.size
+            if (!size || size.length < 2 || size[0] <= 0 || size[1] <= 0) return null
+
+            return [size[0], size[1]]
+        } catch (_error) {
+            return null
+        }
+    }
+
+    function rememberCurrentViewSize() {
+        if (isManagingViewSize) return
+
+        const size = getWindowSize()
+        if (!size) return
+
+        viewSizes[getCurrentViewKey()] = size
+    }
+
+    function restoreViewSize(viewKey) {
+        const size = viewSizes[viewKey]
+        if (!size) return false
+
+        const wasManagingViewSize = isManagingViewSize
+        try {
+            isManagingViewSize = true
+            win.layout.layout(true)
+            win.size = [size[0], size[1]]
+            win.layout.resize()
+            win.size = [size[0], size[1]]
+            if (win.update) win.update()
+            return true
+        } catch (_error) {
+            return false
+        } finally {
+            isManagingViewSize = wasManagingViewSize
+        }
+    }
+
+    function setVisibleView(visible) {
+        setVisible(settingsGroup, visible)
+        setVisible(homeGroup, !visible)
+        settingsButton.text = visible ? (options.backButtonText || 'Back') : (options.settingsButtonText || 'Settings')
+    }
+
     function clearMinimumSize() {
         win.minimumSize = [0, 0]
         borderGroup.minimumSize = [0, 0]
     }
 
+    function applyFixedMinimumSize() {
+        if (!fixedMinimumSize) return
+
+        win.minimumSize = [fixedMinimumSize[0], fixedMinimumSize[1]]
+        borderGroup.minimumSize = [fixedMinimumSize[0], fixedMinimumSize[1]]
+    }
+
     function captureCurrentMinimumSize() {
         try {
             const size = borderGroup.preferredSize || borderGroup.size
-            if (!size || size.length < 2 || size[0] <= 0 || size[1] <= 0) return
+            if (!size || size.length < 2 || size[0] <= 0 || size[1] <= 0) return null
 
-            const minimumSize = [size[0], size[1]]
-            win.minimumSize = minimumSize
-            borderGroup.minimumSize = minimumSize
-        } catch (_error) {}
+            return [size[0], size[1]]
+        } catch (_error) {
+            return null
+        }
     }
 
-    function refreshMinimumSize() {
+    function initializeMinimumSize() {
+        if (fixedMinimumSize) {
+            applyFixedMinimumSize()
+            return
+        }
+
         clearMinimumSize()
         relayout()
-        captureCurrentMinimumSize()
+        fixedMinimumSize = captureCurrentMinimumSize()
+        applyFixedMinimumSize()
+        viewSizes.home = getWindowSize()
         relayout()
+    }
+
+    function initializeViewSizes() {
+        if (!fixedMinimumSize) return
+
+        try {
+            isManagingViewSize = true
+
+            viewSizes.home = getWindowSize() || viewSizes.home
+
+            setVisibleView(true)
+            applyFixedMinimumSize()
+            relayout()
+            viewSizes.settings = getWindowSize()
+
+            setVisibleView(false)
+            applyFixedMinimumSize()
+            if (!restoreViewSize('home')) relayout()
+            settingsVisible = false
+        } finally {
+            isManagingViewSize = false
+        }
     }
 
     function showSettings(visible) {
+        const viewKey = visible ? 'settings' : 'home'
+        if (fixedMinimumSize && settingsVisible !== visible) {
+            rememberCurrentViewSize()
+        }
+
         settingsVisible = visible
-        setVisible(settingsGroup, visible)
-        setVisible(homeGroup, !visible)
-        settingsButton.text = visible ? (options.backButtonText || 'Back') : (options.settingsButtonText || 'Settings')
-        refreshMinimumSize()
+        setVisibleView(visible)
+        applyFixedMinimumSize()
+        if (!restoreViewSize(viewKey)) relayout()
     }
 
     function setVersionInfo(text, color) {
@@ -268,6 +364,17 @@ export function createTemplateFrame(thisObj, options = {}) {
         showSettings(!settingsVisible)
     }
 
+    const originalOnResize = win.onResize
+    const originalOnResizing = win.onResizing
+    win.onResize = function () {
+        rememberCurrentViewSize()
+        if (originalOnResize) originalOnResize()
+    }
+    win.onResizing = function () {
+        rememberCurrentViewSize()
+        if (originalOnResizing) originalOnResizing()
+    }
+
     showSettings(false)
 
     return {
@@ -292,7 +399,8 @@ export function createTemplateFrame(thisObj, options = {}) {
         relayout,
         show: function () {
             show(win)
-            refreshMinimumSize()
+            initializeMinimumSize()
+            initializeViewSizes()
         },
     }
 }
