@@ -144,13 +144,13 @@ export function createTemplateFrame(thisObj, options = {}) {
     versionInfo.alignment = ['left', 'center']
     versionInfo.helpTip = options.versionHelpTip || 'Open project page'
 
-    const developerInfo = bottomGroup.add('statictext', undefined, developerText)
-    developerInfo.alignment = ['left', 'center']
-    developerInfo.helpTip = options.developerHelpTip || 'Open developer page'
-    developerInfo.hide()
-
     const bottomSpacer = bottomGroup.add('statictext', undefined, '')
     bottomSpacer.alignment = ['fill', 'center']
+
+    const developerInfo = bottomGroup.add('statictext', undefined, developerText)
+    developerInfo.alignment = ['right', 'center']
+    developerInfo.helpTip = options.developerHelpTip || 'Open developer page'
+    developerInfo.hide()
 
     const settingsButton = bottomGroup.add('button', undefined, options.settingsButtonText || 'Settings')
     settingsButton.alignment = ['right', 'center']
