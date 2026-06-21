@@ -12,12 +12,15 @@ const entryPoints = glob.sync('src/*.js')
 const devmode = process.env.NODE_ENV === 'development'
 const outdir = devmode ? 'build' : 'dist'
 const pkg = await fs.readJson('./package.json')
-const out = entryPoints.length === 1 ? { outfile: join(outdir, `${pkg.name}.jsx`) } : { outdir }
+const productName = process.env.PRODUCT_NAME || pkg.name
+const productDisplayName = process.env.PRODUCT_DISPLAY_NAME || pkg.displayName
+const productVersion = process.env.PRODUCT_VERSION || pkg.version
+const out = entryPoints.length === 1 ? { outfile: join(outdir, `${productName}.jsx`) } : { outdir }
 const define = {
     'DEVMODE': devmode,
-    'PRODUCT_NAME': JSON.stringify(pkg.name),
-    'PRODUCT_DISPLAY_NAME': JSON.stringify(pkg.displayName),
-    'PRODUCT_VERSION': JSON.stringify(pkg.version),
+    'PRODUCT_NAME': JSON.stringify(productName),
+    'PRODUCT_DISPLAY_NAME': JSON.stringify(productDisplayName),
+    'PRODUCT_VERSION': JSON.stringify(productVersion),
 }
 
 for (const key in process.env) {
