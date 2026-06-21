@@ -1,6 +1,6 @@
 import icon from '../../icons/icon.png'
 import { inspectSettings, updateFooterMessage } from './actions.js'
-import { addButton, addGroup, addStaticText } from '../../../songz-modules/ui.js'
+import { addButton, addEditText, addGroup, addStaticText } from '../../../songz-modules/ui.js'
 
 // Home view: replace this with the main controls for a new script.
 export function buildHomeView(frame, context) {
@@ -60,8 +60,11 @@ export function buildSettingsView(frame, context) {
         text: 'Footer message',
         alignment: ['left', 'center'],
     })
-    const footerMessageInput = footerRow.add('edittext', undefined, context.state.footerMessage)
-    footerMessageInput.alignment = ['fill', 'center']
+    const footerMessageInput = addEditText(footerRow, {
+        text: context.state.footerMessage,
+        justify: 'left',
+        alignment: ['fill', 'center'],
+    })
 
     const settingsActionGroup = addGroup(frame.settingsGroup, {
         alignment: ['fill', 'top'],
@@ -71,9 +74,7 @@ export function buildSettingsView(frame, context) {
 
     addButton(settingsActionGroup, {
         text: 'Preview footer',
-        onClick: function () {
-            updateFooterMessage(frame, context.state, footerMessageInput.text)
-        },
+        onClick: () => updateFooterMessage(frame, context.state, footerMessageInput.text),
     })
 
     addButton(settingsActionGroup, {
