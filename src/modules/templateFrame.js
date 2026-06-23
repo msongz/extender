@@ -14,6 +14,7 @@ import {
     setVisible,
     show,
 } from '../../songz-modules/ui.js'
+import { t } from './i18n.js'
 
 function normalizeFrameOptions(options = {}) {
     return {
@@ -28,12 +29,12 @@ function normalizeFrameOptions(options = {}) {
         borderWidth: options.borderWidth !== undefined ? options.borderWidth : 6,
         contentMargins: options.contentMargins !== undefined ? options.contentMargins : 8,
         contentSpacing: options.contentSpacing !== undefined ? options.contentSpacing : 8,
-        settingsTitle: options.settingsTitle || 'Settings',
-        settingsButtonText: options.settingsButtonText || 'Settings',
-        backButtonText: options.backButtonText || 'Back',
-        settingsHelpTip: options.settingsHelpTip || 'Toggle settings',
-        versionHelpTip: options.versionHelpTip || 'Open project page',
-        developerHelpTip: options.developerHelpTip || 'Open developer page',
+        settingsTitle: options.settingsTitle || t('frame.settingsTitle'),
+        settingsButtonText: options.settingsButtonText || t('frame.settingsButton'),
+        backButtonText: options.backButtonText || t('frame.backButton'),
+        settingsHelpTip: options.settingsHelpTip || t('frame.settingsHelpTip'),
+        versionHelpTip: options.versionHelpTip || t('frame.versionHelpTip'),
+        developerHelpTip: options.developerHelpTip || t('frame.developerHelpTip'),
     }
 }
 
@@ -69,12 +70,13 @@ function createFrameShell(win, config) {
 
     const viewGroup = addGroup(contentGroup, {
         orientation: 'stack',
+        alignment: ['fill', 'fill'],
         alignChildren: ['fill', 'top'],
     })
 
     const homeGroup = addGroup(viewGroup, {
         orientation: 'column',
-        alignment: ['fill', 'top'],
+        alignment: ['fill', 'fill'],
         alignChildren: ['fill', 'top'],
         spacing: 8,
     })

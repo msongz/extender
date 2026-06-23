@@ -15,12 +15,14 @@ const pkg = await fs.readJson('./package.json')
 const productName = process.env.PRODUCT_NAME || pkg.name
 const productDisplayName = process.env.PRODUCT_DISPLAY_NAME || pkg.displayName
 const productVersion = process.env.PRODUCT_VERSION || pkg.version
+const i18nLocale = process.env.I18N_LOCALE || ''
 const out = entryPoints.length === 1 ? { outfile: join(outdir, `${productName}.jsx`) } : { outdir }
 const define = {
     'DEVMODE': devmode,
     'PRODUCT_NAME': JSON.stringify(productName),
     'PRODUCT_DISPLAY_NAME': JSON.stringify(productDisplayName),
     'PRODUCT_VERSION': JSON.stringify(productVersion),
+    'I18N_LOCALE': JSON.stringify(i18nLocale),
 }
 
 for (const key in process.env) {

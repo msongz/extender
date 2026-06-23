@@ -59,6 +59,7 @@ By default the bundler exposes:
 - `PRODUCT_NAME` which is `name` from `package.json`,
 - `PRODUCT_DISPLAY_NAME` which is `displayName` from `package.json` and
 - `PRODUCT_VERSION` which is `version` from `package.json`
+- `I18N_LOCALE` which can override the detected host locale for localized UI strings
 
 If you have a `.env` file it will automatically expose the variables by their name to all Javascript files.
 
