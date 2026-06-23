@@ -67,18 +67,21 @@ export function buildSettingsView(frame, context) {
     })
 
     const settingsActionGroup = addGroup(frame.settingsGroup, {
+        orientation: 'column',
         alignment: ['fill', 'top'],
-        alignChildren: ['fill', 'center'],
+        alignChildren: ['fill', 'top'],
         spacing: 6,
     })
 
     addButton(settingsActionGroup, {
         text: 'Preview footer',
+        alignment: ['fill', 'top'],
         onClick: () => updateFooterMessage(frame, context.state, footerMessageInput.text),
     })
 
     addButton(settingsActionGroup, {
         text: 'Open developer page',
+        alignment: ['fill', 'top'],
         onClick: frame.openDeveloperPage,
     })
 }

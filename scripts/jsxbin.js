@@ -1,6 +1,6 @@
-import { renameSync, existsSync } from 'fs'
+import { renameSync, existsSync, rmSync, statSync } from 'fs'
 import { readdir } from 'fs/promises'
-import { fork } from 'child_process'
+import { spawn } from 'child_process'
 import readdirp from 'readdirp'
 import { homedir } from 'os'
 import path from 'path'
@@ -13,10 +13,41 @@ const foundScripts = await readdirp.promise(curDir, { fileFilter: '*.jsx' })
 const scripts = foundScripts.map((f) => f.fullPath)
 const exportJSXBin = await getExtensionPath()
 
-scripts.forEach((script) => {
-    fork(exportJSXBin, ['-f', '-n', script])
-        .on('close', () => renameSync(`${script}bin`, script))
-})
+for (const script of scripts) {
+    await compileToJSXBin(exportJSXBin, script)
+}
+
+async function compileToJSXBin(exportJSXBin, script) {
+    const compiledScript = `${script}bin`
+    rmSync(compiledScript, { force: true })
+
+    const output = await new Promise((resolve, reject) => {
+        const child = spawn(process.execPath, [exportJSXBin, '-f', '-n', script], {
+            stdio: ['ignore', 'pipe', 'pipe'],
+        })
+        let stdout = ''
+        let stderr = ''
+
+        child.stdout.on('data', (data) => { stdout += data })
+        child.stderr.on('data', (data) => { stderr += data })
+        child.on('error', reject)
+        child.on('close', (code) => {
+            if (code !== 0) {
+                reject(new Error(stderr || stdout || `JSXBIN compiler exited with code ${code}`))
+                return
+            }
+            resolve(`${stdout}${stderr}`)
+        })
+    })
+
+    if (/JSX export failed/i.test(output) || !existsSync(compiledScript) || statSync(compiledScript).size === 0) {
+        rmSync(compiledScript, { force: true })
+        throw new Error(output.trim() || `JSXBIN compiler produced no output for ${script}`)
+    }
+
+    renameSync(compiledScript, script)
+    process.stdout.write(output)
+}
 
 async function getExtensionPath() {
     const extensionsPath = path.join(homedir(), '.vscode', 'extensions')

@@ -12,6 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Fixed` for any bug fixes
 - `Security` in case of vulnerabilities
 
+## [Unreleased]
+
+### Changed
+
+- Disable production minification because Adobe's JSXBIN compiler cannot reliably parse the minified ExtendScript output
+- Wait for the build and JSXBIN conversion processes to finish before completing a release
+
+### Fixed
+
+- Fail the release when JSXBIN compilation reports an error or produces an empty file
+- Prevent failed JSXBIN output from overwriting the valid JSX build artifact
+
 ## [0.0.10] - 2022-12-23
 
 ### Changed

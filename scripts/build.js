@@ -32,7 +32,7 @@ for (const key in process.env) {
     }
 }
 
-build({
+await build({
     ...out,
     define,
     entryPoints,
@@ -40,9 +40,9 @@ build({
     bundle: true,
     sourcemap: devmode,
     target: ['es5'],
-    // JSXBIN can fail when ExtendScript bundles are collapsed into one long line.
-    minifyWhitespace: false,
-    minifyIdentifiers: !devmode,
+    // Adobe's JSXBIN compiler can fail on esbuild's aggressively minified
+    // output, even though the equivalent formatted ES5 is valid ExtendScript.
+    minify: false,
     outExtension: { '.js': '.jsx' },
     banner: {
         js: '(function (thisObj) {',

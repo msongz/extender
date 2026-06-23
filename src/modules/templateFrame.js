@@ -76,7 +76,7 @@ function createFrameShell(win, config) {
 
     const homeGroup = addGroup(viewGroup, {
         orientation: 'column',
-        alignment: ['fill', 'fill'],
+        alignment: ['fill', 'top'],
         alignChildren: ['fill', 'top'],
         spacing: 8,
     })
@@ -128,6 +128,7 @@ function createFrameFooter(contentGroup, config) {
         alignment: ['right', 'center'],
         helpTip: config.settingsHelpTip,
         preferredSize: [78, 22],
+        minimumSize: [78, 22],
     })
 
     const textPen = versionInfo.graphics.newPen(
@@ -292,18 +293,41 @@ function createViewController(win, shell, footer, config) {
         }
     }
 
+    function getMaxSize(first, second) {
+        if (!first) return second
+        if (!second) return first
+
+        return [
+            Math.max(first[0], second[0]),
+            Math.max(first[1], second[1]),
+        ]
+    }
+
+    function captureViewMinimumSize(visible) {
+        const currentVisible = settingsVisible
+
+        try {
+            clearMinimumSize()
+            setVisibleView(visible)
+            relayout()
+            return captureCurrentMinimumSize()
+        } finally {
+            setVisibleView(currentVisible)
+        }
+    }
+
     function initializeMinimumSize() {
         if (fixedMinimumSize) {
             applyFixedMinimumSize()
             return
         }
 
-        clearMinimumSize()
-        relayout()
-        fixedMinimumSize = captureCurrentMinimumSize()
+        const homeMinimumSize = captureViewMinimumSize(false)
+        const settingsMinimumSize = captureViewMinimumSize(true)
+        fixedMinimumSize = getMaxSize(homeMinimumSize, settingsMinimumSize)
         applyFixedMinimumSize()
-        viewSizes.home = getWindowSize()
         relayout()
+        viewSizes.home = getWindowSize()
     }
 
     function initializeViewSizes() {
@@ -401,7 +425,6 @@ export function createTemplateFrame(thisObj, options = {}) {
     const viewController = createViewController(win, shell, footer, config)
 
     bindFrameEvents(win, footer, viewController, footerController)
-    viewController.showSettings(false)
 
     return {
         win,
@@ -424,6 +447,7 @@ export function createTemplateFrame(thisObj, options = {}) {
         openDeveloperPage: footerController.openDeveloperPage,
         relayout: viewController.relayout,
         show: function () {
+            viewController.showSettings(false)
             show(win)
             viewController.initializeMinimumSize()
             viewController.initializeViewSizes()
