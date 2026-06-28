@@ -18,7 +18,7 @@ import { t } from './i18n.js'
 
 function normalizeFrameOptions(options = {}) {
     return {
-        title: options.title || PRODUCT_DISPLAY_NAME,
+        title: options.title !== undefined ? options.title : PRODUCT_DISPLAY_NAME,
         versionText: options.versionText || `v${PRODUCT_VERSION}`,
         developerText: options.developerText || PRODUCT_DEVELOPER,
         projectUrl: options.projectUrl || 'https://github.com/msongz/extender',
@@ -29,7 +29,7 @@ function normalizeFrameOptions(options = {}) {
         borderWidth: options.borderWidth !== undefined ? options.borderWidth : 6,
         contentMargins: options.contentMargins !== undefined ? options.contentMargins : 8,
         contentSpacing: options.contentSpacing !== undefined ? options.contentSpacing : 8,
-        settingsTitle: options.settingsTitle || t('frame.settingsTitle'),
+        settingsTitle: options.settingsTitle !== undefined ? options.settingsTitle : t('frame.settingsTitle'),
         settingsButtonText: options.settingsButtonText || t('frame.settingsButton'),
         backButtonText: options.backButtonText || t('frame.backButton'),
         settingsHelpTip: options.settingsHelpTip || t('frame.settingsHelpTip'),
@@ -62,7 +62,7 @@ function createFrameShell(win, config) {
 
     const contentGroup = addGroup(borderGroup, {
         orientation: 'column',
-        alignChildren: ['fill', 'top'],
+        alignChildren: ['fill', 'fill'],
         margins: config.contentMargins,
         spacing: config.contentSpacing,
     })
@@ -71,12 +71,12 @@ function createFrameShell(win, config) {
     const viewGroup = addGroup(contentGroup, {
         orientation: 'stack',
         alignment: ['fill', 'fill'],
-        alignChildren: ['fill', 'top'],
+        alignChildren: ['fill', 'fill'],
     })
 
     const homeGroup = addGroup(viewGroup, {
         orientation: 'column',
-        alignment: ['fill', 'top'],
+        alignment: ['fill', 'fill'],
         alignChildren: ['fill', 'top'],
         spacing: 8,
     })
@@ -88,10 +88,12 @@ function createFrameShell(win, config) {
         spacing: 8,
     })
 
-    const settingsTitle = addStaticText(settingsGroup, {
-        text: config.settingsTitle,
-        alignment: ['fill', 'top'],
-    })
+    const settingsTitle = config.settingsTitle
+        ? addStaticText(settingsGroup, {
+              text: config.settingsTitle,
+              alignment: ['fill', 'top'],
+          })
+        : null
 
     return {
         borderGroup,
@@ -207,6 +209,7 @@ function createViewController(win, shell, footer, config) {
     let settingsVisible = false
     let fixedMinimumSize = null
     let isManagingViewSize = false
+    const isDockedPanel = win instanceof Panel
     const viewSizes = {
         home: null,
         settings: null,
@@ -245,6 +248,8 @@ function createViewController(win, shell, footer, config) {
     }
 
     function restoreViewSize(viewKey) {
+        if (isDockedPanel) return false
+
         const size = viewSizes[viewKey]
         if (!size) return false
 
@@ -276,6 +281,7 @@ function createViewController(win, shell, footer, config) {
     }
 
     function applyFixedMinimumSize() {
+        if (isDockedPanel) return
         if (!fixedMinimumSize) return
 
         win.minimumSize = [fixedMinimumSize[0], fixedMinimumSize[1]]
@@ -293,44 +299,29 @@ function createViewController(win, shell, footer, config) {
         }
     }
 
-    function getMaxSize(first, second) {
-        if (!first) return second
-        if (!second) return first
-
-        return [
-            Math.max(first[0], second[0]),
-            Math.max(first[1], second[1]),
-        ]
-    }
-
-    function captureViewMinimumSize(visible) {
-        const currentVisible = settingsVisible
-
-        try {
-            clearMinimumSize()
-            setVisibleView(visible)
-            relayout()
-            return captureCurrentMinimumSize()
-        } finally {
-            setVisibleView(currentVisible)
-        }
-    }
-
     function initializeMinimumSize() {
+        if (isDockedPanel) {
+            clearMinimumSize()
+            relayout()
+            viewSizes.home = getWindowSize()
+            return
+        }
+
         if (fixedMinimumSize) {
             applyFixedMinimumSize()
             return
         }
 
-        const homeMinimumSize = captureViewMinimumSize(false)
-        const settingsMinimumSize = captureViewMinimumSize(true)
-        fixedMinimumSize = getMaxSize(homeMinimumSize, settingsMinimumSize)
-        applyFixedMinimumSize()
+        clearMinimumSize()
         relayout()
+        fixedMinimumSize = captureCurrentMinimumSize()
+        applyFixedMinimumSize()
         viewSizes.home = getWindowSize()
+        relayout()
     }
 
     function initializeViewSizes() {
+        if (isDockedPanel) return
         if (!fixedMinimumSize) return
 
         try {
