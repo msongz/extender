@@ -2,6 +2,8 @@
 	"name": "extender",
 	"displayName": "Extender",
 	"version": "0.0.10",
+	"displayVersion": "0.0.10",
+	"author": "@songz",
 	"type": "module",
 	"private": true,
 	"engines": {

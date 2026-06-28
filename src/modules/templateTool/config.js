@@ -8,7 +8,7 @@ export const toolSettings = merge(toolDefaults, { version: PRODUCT_VERSION })
 export const frameOptions = {
     title: PRODUCT_DISPLAY_NAME,
     versionText: `v${PRODUCT_VERSION}`,
-    developerText: '@songz',
+    developerText: PRODUCT_DEVELOPER,
     projectUrl: 'https://github.com/msongz/extender',
     developerUrl: 'https://github.com/msongz',
     borderHex: '709536',

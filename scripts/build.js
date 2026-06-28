@@ -12,9 +12,15 @@ const entryPoints = glob.sync('src/*.js')
 const devmode = process.env.NODE_ENV === 'development'
 const outdir = devmode ? 'build' : 'dist'
 const pkg = await fs.readJson('./package.json')
+const normalizePackageAuthor = (author) => {
+    if (!author) return ''
+    if (typeof author === 'string') return author
+    return author.name || ''
+}
 const productName = process.env.PRODUCT_NAME || pkg.name
 const productDisplayName = process.env.PRODUCT_DISPLAY_NAME || pkg.displayName
-const productVersion = process.env.PRODUCT_VERSION || pkg.version
+const productVersion = process.env.PRODUCT_VERSION || pkg.displayVersion || pkg.version
+const productDeveloper = process.env.PRODUCT_DEVELOPER || normalizePackageAuthor(pkg.author)
 const i18nLocale = process.env.I18N_LOCALE || ''
 const out = entryPoints.length === 1 ? { outfile: join(outdir, `${productName}.jsx`) } : { outdir }
 const define = {
@@ -22,6 +28,7 @@ const define = {
     'PRODUCT_NAME': JSON.stringify(productName),
     'PRODUCT_DISPLAY_NAME': JSON.stringify(productDisplayName),
     'PRODUCT_VERSION': JSON.stringify(productVersion),
+    'PRODUCT_DEVELOPER': JSON.stringify(productDeveloper),
     'I18N_LOCALE': JSON.stringify(i18nLocale),
 }
 

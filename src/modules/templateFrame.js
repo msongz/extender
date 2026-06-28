@@ -20,7 +20,7 @@ function normalizeFrameOptions(options = {}) {
     return {
         title: options.title || PRODUCT_DISPLAY_NAME,
         versionText: options.versionText || `v${PRODUCT_VERSION}`,
-        developerText: options.developerText || '@songz',
+        developerText: options.developerText || PRODUCT_DEVELOPER,
         projectUrl: options.projectUrl || 'https://github.com/msongz/extender',
         developerUrl: options.developerUrl || 'https://github.com/msongz',
         borderColor: options.borderColor || hexToScriptUIColor(options.borderHex || '709536'),
