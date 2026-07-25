@@ -13,7 +13,10 @@
 		"start": "cross-env NODE_ENV=development npm-run-all build",
 		"release": "cross-env NODE_ENV=production run-s build jsxbin",
 		"jsxbin": "node ./scripts/jsxbin.js",
-		"build": "node ./scripts/build.js"
+		"build": "node ./scripts/build.js",
+		"check": "node ./scripts/validate.js",
+		"verify-build": "node ./scripts/validate.js --build",
+		"ci": "run-s check build verify-build"
 	},
 	"devDependencies": {
 		"babel-preset-extendscript": "^1.0.2",

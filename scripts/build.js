@@ -24,19 +24,12 @@ const productDeveloper = process.env.PRODUCT_DEVELOPER || normalizePackageAuthor
 const i18nLocale = process.env.I18N_LOCALE || ''
 const out = entryPoints.length === 1 ? { outfile: join(outdir, `${productName}.jsx`) } : { outdir }
 const define = {
-    'DEVMODE': devmode,
+    'DEVMODE': JSON.stringify(devmode),
     'PRODUCT_NAME': JSON.stringify(productName),
     'PRODUCT_DISPLAY_NAME': JSON.stringify(productDisplayName),
     'PRODUCT_VERSION': JSON.stringify(productVersion),
     'PRODUCT_DEVELOPER': JSON.stringify(productDeveloper),
     'I18N_LOCALE': JSON.stringify(i18nLocale),
-}
-
-for (const key in process.env) {
-    const invalid = key.includes('(x86)')
-    if (!invalid) {
-        define[key] = JSON.stringify(process.env[key])
-    }
 }
 
 await build({

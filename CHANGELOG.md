@@ -14,8 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add generic repository and production-build validation commands
+- Add a GitHub Actions build gate for pushes and pull requests
+
 ### Changed
 
+- Restrict compile-time environment replacement to documented build constants
+- Normalize esbuild `define` values as JavaScript source strings
 - Disable production minification because Adobe's JSXBIN compiler cannot reliably parse the minified ExtendScript output
 - Wait for the build and JSXBIN conversion processes to finish before completing a release
 

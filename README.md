@@ -19,7 +19,7 @@ Other starters don't actually transform modern Javascript, so you have to write 
 - Shortens release identifiers while keeping JSXBIN-safe whitespace
 - Converts to binary with [extendscript-debugger](https://marketplace.visualstudio.com/items?itemName=Adobe.extendscript-debug)
 - Wraps bundle in an [IIFE](https://developer.mozilla.org/en-US/docs/Glossary/IIFE) to avoid global variables and expose Adobe's `thisObj` for dockable ScriptUI panels
-- Exposes environment variables to Javascript files
+- Exposes explicit build constants to Javascript files
 - Includes JSON automatically as a ponyfill
 - Copies static files from `/static` (with [esbuild-copy-static-files](https://github.com/nickjj/esbuild-copy-static-files))
 - Imports `?text` suffixed paths as strings
@@ -35,25 +35,29 @@ Other starters don't actually transform modern Javascript, so you have to write 
 
 ## Development
 
-```
-npm install && npm start
+```sh
+npm ci
+npm run check
+npm start
 ```
 
 This will start watching your source files and builds into the `build` folder.
 
+Use `npm run ci` before submitting a change. It validates the repository, creates
+a production build, and verifies every generated entry point and copied static
+file. GitHub Actions runs the same command for pushes and pull requests.
+
 ## Release
 
-```
+```sh
 npm run release
 ```
 
-This will bundle, minify and jsxbin your source files into the `dist` folder.
+This will bundle and convert your source files to JSXBIN in the `dist` folder.
 
 ## Environment Variables
 
-All variables are replaced by their values upon bundling.
-
-By default the bundler exposes:
+The bundler exposes only these documented compile-time constants:
 
 - `DEVMODE` when `NODE_ENV` is `development` or not,
 - `PRODUCT_NAME` which is `name` from `package.json`,
@@ -62,7 +66,11 @@ By default the bundler exposes:
 - `PRODUCT_DEVELOPER` which is `author` from `package.json`, and
 - `I18N_LOCALE` which can override the detected host locale for localized UI strings
 
-If you have a `.env` file it will automatically expose the variables by their name to all Javascript files.
+A local `.env` file can override the corresponding product constants. Other
+process environment variables are intentionally not injected into source code,
+which keeps builds deterministic and avoids replacing unrelated identifiers. Add
+new compile-time constants explicitly to the `define` object in
+[scripts/build.js](./scripts/build.js).
 
 ## Entrypoints
 
