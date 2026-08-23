@@ -56,7 +56,9 @@ async function getExtensionPath() {
     }
     const extensions = await readdir(extensionsPath)
     const extensionName = 'adobe.extendscript-debug'
-    const extendscriptFolder = extensions.find((f) => f.includes(extensionName))
+    const extendscriptFolder = extensions
+        .filter((name) => name === extensionName || name.startsWith(`${extensionName}-`))
+        .sort((left, right) => right.localeCompare(left, undefined, { numeric: true, sensitivity: 'base' }))[0]
     if (!extendscriptFolder) {
         throw new Error(`Missing VSCode extension ${path.join(extensionsPath, extensionName)}`)
     }

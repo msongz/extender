@@ -7,6 +7,7 @@ import {
 } from 'fs'
 import { basename, dirname, extname, join, relative, resolve } from 'path'
 import { fileURLToPath } from 'url'
+import { BINARY_ASSET_FILTER } from './binary.js'
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const packageJson = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf8'))
@@ -115,12 +116,29 @@ function validatePackageMetadata() {
     }
 }
 
+function validateBinaryAssetFilter() {
+    const cases = [
+        ['icon.png', true],
+        ['PHOTO.JPEG', true],
+        ['icon.png.js', false],
+        ['not-jpg', false],
+    ]
+
+    for (const [fileName, expected] of cases) {
+        if (BINARY_ASSET_FILTER.test(fileName) !== expected) {
+            fail(`scripts/binary.js: unexpected asset match for ${fileName}`)
+        }
+    }
+}
+
 function validateRepository() {
     validatePackageMetadata()
+    validateBinaryAssetFilter()
 
     const requiredFiles = [
         '.gitmodules',
         'README.md',
+        'scripts/tsconfig.build.json',
         'songz-modules/ui.js',
         'src/main.js',
         'static/README.html',

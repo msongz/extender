@@ -3,15 +3,18 @@ import babel from 'esbuild-plugin-babel'
 import binaryString from './binary.js'
 import textLoader from './text.js'
 import { build } from 'esbuild'
-import { join } from 'path'
+import { dirname, join } from 'path'
+import { fileURLToPath } from 'url'
 import fs from 'fs-extra'
 import glob from 'glob'
-import 'dotenv/config'
+import dotenv from 'dotenv'
 
-const entryPoints = glob.sync('src/*.js')
+const projectRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
+const entryPoints = glob.sync(join(projectRoot, 'src/*.js').replace(/\\/g, '/'))
+const projectEnv = dotenv.config({ path: join(projectRoot, '.env') }).parsed || {}
 const devmode = process.env.NODE_ENV === 'development'
-const outdir = devmode ? 'build' : 'dist'
-const pkg = await fs.readJson('./package.json')
+const outdir = join(projectRoot, devmode ? 'build' : 'dist')
+const pkg = await fs.readJson(join(projectRoot, 'package.json'))
 const normalizePackageAuthor = (author) => {
     if (!author) return ''
     if (typeof author === 'string') return author
@@ -32,11 +35,27 @@ const define = {
     'I18N_LOCALE': JSON.stringify(i18nLocale),
 }
 
+for (const key of Object.keys(projectEnv)) {
+    // Only expose variables declared by this project. Passing the complete
+    // host environment to esbuild can accidentally replace ordinary source
+    // identifiers such as PATH, TEMP, or USERNAME.
+    if (/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(key)) {
+        const value = JSON.stringify(process.env[key])
+        if (value !== undefined && define[key] === undefined) define[key] = value
+    }
+}
+
 await build({
     ...out,
     define,
     entryPoints,
+    absWorkingDir: projectRoot,
+    tsconfig: join(projectRoot, 'scripts/tsconfig.build.json'),
     logLevel: 'info',
+    // babel-preset-extendscript's JSON ponyfill intentionally retains a
+    // future-facing `typeof value === "null"` case. Silence only that known
+    // upstream diagnostic while keeping every other esbuild warning visible.
+    logOverride: { 'impossible-typeof': 'silent' },
     bundle: true,
     sourcemap: devmode,
     target: ['es5'],
@@ -51,7 +70,7 @@ await build({
         js: '})(this);',
     },
     plugins: [
-        copyStaticFiles({ dest: outdir }),
+        copyStaticFiles({ src: join(projectRoot, 'static'), dest: outdir }),
         binaryString(),
         textLoader(),
         babel({
