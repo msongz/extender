@@ -1,6 +1,10 @@
 const DEFAULT_LOCALE = 'en_US'
 
 const messages = {
+    'dialog.okButton': {
+        en_US: 'OK',
+        zh_CN: '确定',
+    },
     'frame.settingsTitle': {
         en_US: 'Settings',
         zh_CN: '设置',

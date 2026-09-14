@@ -3,7 +3,7 @@ import {
     addMouseOutEvent,
     addMouseOverEvent,
     addOnClickEvent,
-    addButton,
+    addThemedButton,
     addGroup,
     addStaticText,
     addWindow,
@@ -125,12 +125,13 @@ function createFrameFooter(contentGroup, config) {
     })
     developerInfo.hide()
 
-    const settingsButton = addButton(bottomGroup, {
+    const settingsButton = addThemedButton(bottomGroup, {
+        themeColor: config.borderColor,
         text: config.settingsButtonText,
         alignment: ['right', 'center'],
         helpTip: config.settingsHelpTip,
-        preferredSize: [78, 22],
-        minimumSize: [78, 22],
+        preferredSize: [78, 30],
+        minimumSize: [78, 30],
     })
 
     const textPen = versionInfo.graphics.newPen(
@@ -272,7 +273,7 @@ function createViewController(win, shell, footer, config) {
     function setVisibleView(visible) {
         setVisible(shell.settingsGroup, visible)
         setVisible(shell.homeGroup, !visible)
-        footer.settingsButton.text = visible ? config.backButtonText : config.settingsButtonText
+        footer.settingsButton.setText(visible ? config.backButtonText : config.settingsButtonText)
     }
 
     function clearMinimumSize() {

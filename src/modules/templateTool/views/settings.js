@@ -1,5 +1,5 @@
 import { updateFooterMessage } from '../actions.js'
-import { addButton, addEditText, addGroup, addStaticText } from '../../../../songz-modules/ui.js'
+import { addThemedButton, addEditText, addGroup, addStaticText } from '../../../../songz-modules/ui.js'
 
 // Settings view: put preferences and secondary controls here.
 export function buildSettingsView(frame, context) {
@@ -26,13 +26,15 @@ export function buildSettingsView(frame, context) {
         spacing: 6,
     })
 
-    addButton(settingsActionGroup, {
+    addThemedButton(settingsActionGroup, {
+        themeColor: frame.borderColor,
         text: 'Preview footer',
         alignment: ['fill', 'top'],
         onClick: () => updateFooterMessage(frame, context.state, footerMessageInput.text),
     })
 
-    addButton(settingsActionGroup, {
+    addThemedButton(settingsActionGroup, {
+        themeColor: frame.borderColor,
         text: 'Open developer page',
         alignment: ['fill', 'top'],
         onClick: frame.openDeveloperPage,

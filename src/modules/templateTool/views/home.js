@@ -1,6 +1,6 @@
 import icon from '../../../icons/icon.png'
 import { inspectSettings } from '../actions.js'
-import { addButton, addGroup, addStaticText } from '../../../../songz-modules/ui.js'
+import { addThemedButton, addGroup, addStaticText } from '../../../../songz-modules/ui.js'
 
 // Home view: replace this with the main controls for a new script.
 export function buildHomeView(frame, context) {
@@ -28,21 +28,33 @@ export function buildHomeView(frame, context) {
         spacing: 6,
     })
 
-    addButton(actionGroup, {
+    const inspectButton = addThemedButton(actionGroup, {
+        themeColor: frame.borderColor,
         text: 'Inspect settings',
         onClick: function () {
-            inspectSettings(context.toolSettings)
+            inspectSettings(context.toolSettings, frame, function () {
+                inspectButton.setEnabled(inspectButton.enabled)
+                // Invalidate the native label as well as the owner-drawn background.
+                // No layout pass is needed, so the panel keeps its current size.
+                if (inspectButton.visible) {
+                    inspectButton.hide()
+                    inspectButton.show()
+                }
+                if (frame.win.update) frame.win.update()
+            })
         },
     })
 
-    addButton(actionGroup, {
+    addThemedButton(actionGroup, {
+        themeColor: frame.borderColor,
         text: 'Flash footer',
         onClick: function () {
             frame.flashVersionInfo(context.state.footerMessage)
         },
     })
 
-    addButton(frame.homeGroup, {
+    addThemedButton(frame.homeGroup, {
+        themeColor: frame.borderColor,
         text: 'Open project page',
         onClick: frame.openProjectPage,
     })
